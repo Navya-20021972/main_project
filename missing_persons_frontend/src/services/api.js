@@ -9,9 +9,14 @@ const api = axios.create({
   },
 });
 
+// Create a separate instance for file uploads without Content-Type header
+const apiForm = axios.create({
+  baseURL: API_BASE_URL,
+});
+
 // Reports API
 export const reportAPI = {
-  createReport: (data) => api.post('/reports/create/', data),
+  createReport: (data) => apiForm.post('/reports/', data),
   getReports: () => api.get('/reports/'),
   getReport: (id) => api.get(`/reports/${id}/`),
 };
