@@ -16,9 +16,9 @@ const apiForm = axios.create({
 
 // Reports API
 export const reportAPI = {
-  createReport: (data) => apiForm.post('/reports/', data),
-  getReports: () => api.get('/reports/'),
-  getReport: (id) => api.get(`/reports/${id}/`),
+  createReport: (data) => apiForm.post('/reports/reports/', data),
+  getReports: () => api.get('/reports/reports/'),
+  getReport: (id) => api.get(`/reports/reports/${id}/`),
 };
 
 // Search API
