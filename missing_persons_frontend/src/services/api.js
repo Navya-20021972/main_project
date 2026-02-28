@@ -23,9 +23,9 @@ export const reportAPI = {
 
 // Search API
 export const searchAPI = {
-  startSearch: (reportId, cameras) => api.post('/search/start-search/', { report_id: reportId, cameras }),
-  getSearchJob: (jobId) => api.get(`/search/search-job/${jobId}/`),
-  getResults: (reportId) => api.get(`/search/results/?report_id=${reportId}`),
+  startSearch: (reportId, cameras) => apiForm.post('/search/search-jobs/start_search/', { report_id: reportId, camera_ids: cameras }),
+  getSearchJob: (jobId) => api.get(`/search/search-jobs/${jobId}/`),
+  getResults: (reportId) => api.get(`/reports/results/?report_id=${reportId}`),
 };
 
 // Locations API

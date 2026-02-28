@@ -1,7 +1,7 @@
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils import timezone
 from .models import SearchJob
 from .serializers import SearchJobSerializer
@@ -27,7 +27,7 @@ class SearchJobViewSet(viewsets.ModelViewSet):
     """
     queryset = SearchJob.objects.all()
     serializer_class = SearchJobSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         return SearchJob.objects.all().order_by('-created_at')
