@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.shortcuts import get_object_or_404
 from .models import Location, Camera, Report, CameraVideo, SearchResult
 from .serializers import (
@@ -17,7 +17,7 @@ class LocationViewSet(viewsets.ModelViewSet):
     """
     queryset = Location.objects.all()
     serializer_class = LocationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         return Location.objects.all().order_by('name')
@@ -29,7 +29,7 @@ class CameraViewSet(viewsets.ModelViewSet):
     """
     queryset = Camera.objects.all()
     serializer_class = CameraSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     
     def get_queryset(self):
         location_id = self.request.query_params.get('location_id')
@@ -43,8 +43,16 @@ class ReportViewSet(viewsets.ModelViewSet):
     API endpoint for missing person reports.
     """
     queryset = Report.objects.all()
-    permission_classes = [IsAuthenticated]
     parser_classes = (MultiPartParser, FormParser)
+    
+    def get_permissions(self):
+        """
+        Allow unauthenticated users to create reports.
+        Require authentication for other actions.
+        """
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAuthenticated()]
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -54,29 +62,19 @@ class ReportViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         # Users can see their own reports, admins see all
         user = self.request.user
-        if user.role == 'admin':
-            return Report.objects.all()
-        return Report.objects.filter(reported_by=user)
+        if user and user.is_authenticated:
+            if user.role == 'admin':
+                return Report.objects.all()
+            return Report.objects.filter(reported_by=user)
+        # Unauthenticated users can't view reports
+        return Report.objects.none()
     
     def perform_create(self, serializer):
-        serializer.save(reported_by=self.request.user)
-    
-    @action(detail=True, methods=['get'])
-    def search_results(self, request, pk=None):
-        """Get search results for a specific report"""
-        report = self.get_object()
-        results = SearchResult.objects.filter(report=report).order_by('-confidence')
-        serializer = SearchResultSerializer(results, many=True)
-        return Response(serializer.data)
-    
-    @action(detail=False, methods=['post'])
-    def create_report(self, request):
-        """Create a new report"""
-        serializer = ReportSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(reported_by=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Allow anonymous report creation
+        if self.request.user and self.request.user.is_authenticated:
+            serializer.save(reported_by=self.request.user)
+        else:
+            serializer.save(reported_by=None)
 
 
 class CameraVideoViewSet(viewsets.ModelViewSet):

@@ -22,7 +22,12 @@ class CameraVideoSerializer(serializers.ModelSerializer):
 
 class ReportSerializer(serializers.ModelSerializer):
     location_name = serializers.CharField(source='last_seen_location.name', read_only=True)
-    reported_by_name = serializers.CharField(source='reported_by.get_full_name', read_only=True)
+    reported_by_name = serializers.SerializerMethodField(read_only=True)
+    
+    def get_reported_by_name(self, obj):
+        if obj.reported_by:
+            return obj.reported_by.get_full_name()
+        return 'Anonymous'
     
     class Meta:
         model = Report
@@ -32,6 +37,7 @@ class ReportSerializer(serializers.ModelSerializer):
             'last_seen_time', 'reported_by', 'reported_by_name',
             'status', 'created_at', 'updated_at'
         ]
+        read_only_fields = ['id', 'created_at', 'updated_at', 'reported_by', 'reported_by_name']
 
 class ReportDetailSerializer(ReportSerializer):
     class Meta(ReportSerializer.Meta):

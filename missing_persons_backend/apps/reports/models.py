@@ -45,7 +45,7 @@ class Report(models.Model):
     description = models.TextField()
     last_seen_location = models.ForeignKey(Location, on_delete=models.SET_NULL, null=True)
     last_seen_time = models.DateTimeField()
-    reported_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='reports')
+    reported_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reports')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='filed')
     
     created_at = models.DateTimeField(auto_now_add=True)
